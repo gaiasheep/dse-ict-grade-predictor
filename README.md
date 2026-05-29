@@ -4,9 +4,11 @@
 ![Powered by](https://img.shields.io/badge/Powered%20by-Claude%20AI-violet?style=for-the-badge)
 ![Language](https://img.shields.io/badge/Language-TC%20%7C%20SC%20%7C%20EN-emerald?style=for-the-badge)
 
-一個專為香港 DSE ICT（資訊及通訊科技科）師生打造的**專業級、多功能成績預估評估工具**。完美適應學校日常模擬考（Mock）及階段測驗的多變滿分需求，並基於最新考情與實考數據提供即時視覺化回饋。
+一個專為香港 DSE ICT（資訊及通訊科技科）師生打造的**成績預估評估工具**。完美適應學校日常模擬考（Mock）及階段測驗的多變滿分需求，並基於最新考情與實考數據提供即時視覺化回饋。
 
-🌐 **Live Demo (線上體驗):** `https://gaiasheep.github.io/dse-ict-grade-predictor/` 
+👉 **[Live Demo / Access the Tool](https://gaiasheep.github.io/dse-ict-grade-predictor/)**
+
+
 
 ---
 
