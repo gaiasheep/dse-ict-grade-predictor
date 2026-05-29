@@ -1,113 +1,642 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ICT Grade Predictor</title>
-  <style>
-    :root { --primary:#4361ee; --success:#2ecc71; --warning:#f39c12; --danger:#e74c3c; }
-    body {font-family:'Segoe UI',sans-serif; background:linear-gradient(135deg,#667eea,#764ba2); margin:0; padding:20px; color:#333; min-height:100vh;}
-    .container {max-width:600px; margin:40px auto; background:white; border-radius:20px; box-shadow:0 20px 40px rgba(0,0,0,0.1); overflow:hidden;}
-    header {background:var(--primary); color:white; padding:30px; text-align:center;}
-    h1 {margin:0; font-size:28px;}
-    .subtitle {font-size:16px; opacity:0.9; margin-top:8px;}
-    .form {padding:30px;}
-    .input-group {margin-bottom:20px;}
-    label {display:block; margin-bottom:8px; font-weight:600; color:#2c3e50;}
-    input {width:100%; padding:14px; border:2px solid #ddd; border-radius:10px; font-size:16px; box-sizing:border-box; transition:0.3s;}
-    input:focus {outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(67,97,238,0.2);}
-    button {width:100%; padding:16px; background:var(--primary); color:white; border:none; border-radius:12px; font-size:18px; font-weight:bold; cursor:pointer; transition:0.3s;}
-    button:hover {background:#3a56e0; transform:translateY(-2px);}
-    .result {display:none; padding:30px; background:#f8f9fa; text-align:center;}
-    .score {font-size:48px; font-weight:bold; color:var(--primary); margin:10px 0;}
-    .percent {font-size:24px; color:#7f8c8d;}
-    .progress {height:20px; background:#eee; border-radius:10px; overflow:hidden; margin:20px 0;}
-    .bar {height:100%; width:0%; background:var(--success); transition:width 1s ease-out;}
-    .comment {font-size:20px; margin:20px 0; padding:15px; border-radius:12px; background:#e8f5e8; color:#27ae60; font-weight:bold;}
-    footer {text-align:center; padding:20px; color:#95a5a6; font-size:14px;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSE ICT 預估成績計算器</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#4f46e5;--primary-light:#6366f1;--primary-lighter:#eef2ff;
+  --primary-dark:#3730a3;--accent:#3b82f6;
+  --success:#10b981;--danger:#ef4444;--warn:#f59e0b;
+  --bg:#f1f5f9;--card:#ffffff;--text:#1e293b;--muted:#64748b;
+  --border:#e2e8f0;--radius:20px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(79,70,229,.08);
+  --shadow-lg:0 4px 6px rgba(0,0,0,.05),0 10px 40px rgba(79,70,229,.12);
+}
+body{min-height:100vh;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  color:var(--text);background:var(--bg);padding-bottom:60px}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:62px;background:#fff;
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 0 rgba(79,70,229,.07),0 2px 12px rgba(79,70,229,.06);
+  position:sticky;top:0;z-index:100}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-icon{width:34px;height:34px;border-radius:9px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:grid;place-items:center;font-size:1rem;color:#fff;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(79,70,229,.35)}
+.nav-title{font-weight:700;font-size:.97rem;color:var(--text);letter-spacing:-.1px}
+.nav-subtitle{font-size:.7rem;color:var(--muted);margin-top:1px}
+.lang-group{display:flex;gap:4px;background:var(--primary-lighter);
+  padding:4px;border-radius:10px}
+.lang-btn{padding:5px 12px;border:none;background:transparent;
+  color:var(--primary);border-radius:7px;cursor:pointer;
+  font-size:.78rem;font-weight:600;transition:all .18s;letter-spacing:.2px}
+.lang-btn:hover{background:rgba(79,70,229,.12)}
+.lang-btn.active{background:var(--primary);color:#fff;
+  box-shadow:0 2px 6px rgba(79,70,229,.3)}
+
+/* MAIN */
+main{max-width:740px;margin:28px auto;padding:0 16px;display:flex;flex-direction:column;gap:18px}
+
+/* SECTION LABEL */
+.section-label{font-size:.7rem;font-weight:700;letter-spacing:.8px;
+  color:var(--primary);text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:6px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--primary-lighter)}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--radius);padding:22px 24px;
+  box-shadow:var(--shadow);border:1px solid var(--border)}
+.card-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px}
+.card-icon{width:38px;height:38px;border-radius:10px;display:grid;
+  place-items:center;font-size:1rem;flex-shrink:0}
+.card-icon.p1{background:linear-gradient(135deg,#4f46e5,#6366f1)}
+.card-icon.p2{background:linear-gradient(135deg,#3b82f6,#06b6d4)}
+.card-icon.sba{background:linear-gradient(135deg,#10b981,#34d399)}
+.card-title{font-weight:700;font-size:.95rem;color:var(--text);line-height:1.3}
+.card-badge{display:inline-block;margin-top:4px;padding:2px 8px;
+  background:var(--primary-lighter);color:var(--primary);
+  border-radius:5px;font-size:.68rem;font-weight:600;letter-spacing:.2px}
+.card-sub{font-size:.75rem;color:var(--muted);margin-top:3px}
+
+/* SCORE GRID */
+.score-grid{display:flex;flex-direction:column;gap:12px}
+.score-row{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.score-label{font-size:.8rem;font-weight:600;color:var(--muted);
+  min-width:100px;padding-top:10px;flex-shrink:0}
+.input-group{display:flex;align-items:center;gap:7px;flex:1;flex-wrap:wrap}
+.input-wrap{position:relative;display:flex;flex-direction:column}
+.input-wrap input{width:86px;padding:8px 11px;
+  border:1.5px solid var(--border);border-radius:9px;
+  font-size:.9rem;color:var(--text);background:#fff;
+  transition:border-color .18s,box-shadow .18s;outline:none;
+  -moz-appearance:textfield}
+.input-wrap input::-webkit-inner-spin-button,
+.input-wrap input::-webkit-outer-spin-button{-webkit-appearance:none}
+.input-wrap input::placeholder{color:#cbd5e1}
+.input-wrap input:focus{border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(79,70,229,.13)}
+.input-wrap input.error{border-color:var(--danger);background:#fef2f2}
+.input-wrap input:disabled{background:#f8fafc;color:#cbd5e1;
+  cursor:not-allowed;border-color:#e2e8f0}
+.err-msg{font-size:.68rem;color:var(--danger);margin-top:3px;
+  min-height:14px;white-space:nowrap}
+.sep{font-size:.9rem;color:#cbd5e1;font-weight:500;padding-top:10px}
+.fixed-label{font-size:.78rem;color:var(--muted);
+  padding-top:10px;white-space:nowrap}
+
+/* DIVIDER */
+.score-divider{border:none;border-top:1px dashed var(--border);margin:4px 0}
+
+/* P2 WARNING */
+.p2-warning{display:none;margin-top:14px;padding:10px 14px;
+  background:#fffbeb;border:1px solid #fde68a;border-radius:10px;
+  font-size:.8rem;color:#92400e;font-weight:500;line-height:1.4}
+.p2-warning.show{display:block}
+
+/* RESULT */
+.result-card{background:#fff;border-radius:var(--radius);
+  box-shadow:var(--shadow-lg);border:1px solid var(--border);
+  overflow:hidden;transition:all .3s}
+.result-card.hidden{display:none}
+.result-header{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);
+  padding:24px 26px 20px}
+.result-top{display:flex;align-items:flex-end;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.result-score-wrap{display:flex;align-items:flex-end;gap:4px}
+.result-score{font-size:3rem;font-weight:800;color:#fff;
+  line-height:1;letter-spacing:-1.5px}
+.result-pct{font-size:1rem;color:rgba(255,255,255,.75);padding-bottom:5px}
+.grade-badge{padding:6px 16px;border-radius:30px;font-weight:700;
+  font-size:.88rem;color:#fff;border:2px solid rgba(255,255,255,.5);
+  background:rgba(255,255,255,.18);backdrop-filter:blur(4px)}
+.mode-tag{font-size:.7rem;color:rgba(255,255,255,.6);margin-top:4px}
+.prog-wrap{background:rgba(255,255,255,.2);border-radius:30px;
+  height:8px;overflow:hidden}
+.prog-bar{height:100%;border-radius:30px;
+  background:linear-gradient(90deg,rgba(255,255,255,.6),#fff);
+  transition:width .65s cubic-bezier(.4,0,.2,1);width:0%}
+
+/* CUTOFF */
+.cutoff-section{padding:18px 24px;border-bottom:1px solid var(--border)}
+.cutoff-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.cutoff-item{background:#f8fafc;border-radius:10px;padding:8px 4px;
+  text-align:center;border:1.5px solid var(--border);transition:all .25s;cursor:default}
+.cutoff-item.active{background:var(--primary-lighter);border-color:var(--primary);
+  transform:translateY(-2px);box-shadow:0 4px 12px rgba(79,70,229,.15)}
+.cutoff-grade{font-weight:700;font-size:.75rem;color:var(--text)}
+.cutoff-item.active .cutoff-grade{color:var(--primary)}
+.cutoff-pct{font-size:.62rem;color:var(--muted);margin-top:2px}
+.cutoff-item.active .cutoff-pct{color:var(--primary-light)}
+
+/* COMMENT */
+.comment-section{padding:16px 24px}
+.comment-label{font-size:.68rem;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.comment-box{background:var(--primary-lighter);border-radius:11px;
+  padding:13px 15px;font-size:.86rem;line-height:1.65;
+  color:var(--primary-dark);border-left:3px solid var(--primary)}
+
+/* FOOTER */
+footer{margin-top:18px;padding:22px 16px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:8px}
+footer .name{font-size:.82rem;color:var(--muted);font-weight:500}
+footer a{color:var(--primary);text-decoration:none;font-weight:500}
+footer a:hover{text-decoration:underline}
+footer > div{font-size:.78rem;color:var(--muted)}
+.badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:2px}
+.badges span{font-size:.73rem;color:var(--muted)}
+.badge{padding:4px 11px;border-radius:20px;font-size:.73rem;font-weight:600;letter-spacing:.2px}
+.badge-claude{background:#f0f0ff;color:#4f46e5;border:1px solid #c7d2fe}
+.badge-github{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+
+/* MOBILE */
+@media(max-width:520px){
+  nav{padding:0 16px}
+  .nav-subtitle{display:none}
+  main{padding:0 12px}
+  .card{padding:18px 16px}
+  .score-label{min-width:76px;font-size:.76rem}
+  .input-wrap input{width:74px;font-size:.85rem}
+  .cutoff-grid{grid-template-columns:repeat(3,1fr)}
+  .result-score{font-size:2.4rem}
+  .result-header{padding:20px 18px 16px}
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>ICT Grade Predictor</h1>
-      <div class="subtitle">Accurate prediction based on official weighting</div>
-    </header>
 
-    <div class="form">
-      <div class="input-group">
-        <label>Paper 1A (out of 40)</label>
-        <input type="number" id="p1a" min="0" max="40" step="0.5" placeholder="e.g. 36.5" />
-      </div>
-      <div class="input-group">
-        <label>Paper 1B (out of 60)</label>
-        <input type="number" id="p1b" min="0" max="60" step="0.5" placeholder="e.g. 52" />
-      </div>
-      <div class="input-group">
-        <label>Elective A (out of 30)</label>
-        <input type="number" id="ea" min="0" max="30" step="0.5" placeholder="e.g. 28" />
-      </div>
-      <div class="input-group">
-        <label>Elective C (out of 30)</label>
-        <input type="number" id="ec" min="0" max="30" step="0.5" placeholder="e.g. 27" />
-      </div>
-      <button onclick="calculate()">Predict My Grade</button>
+<nav>
+  <div class="nav-brand">
+    <div class="nav-icon">📊</div>
+    <div>
+      <div class="nav-title" id="nav-title">DSE ICT 預估成績計算器</div>
+      <div class="nav-subtitle">Hong Kong Diploma of Secondary Education</div>
     </div>
-
-    <div class="result" id="result">
-      <div class="score" id="total">0 / 160</div>
-      <div class="percent" id="percent">0%</div>
-      <div class="progress"><div class="bar" id="bar"></div></div>
-      <div class="comment" id="comment">Ready to calculate</div>
-      <p style="color:#7f8c8d; font-size:14px;">
-        Formula: (Paper 1 × 55% + Paper 2 × 25%) ÷ 80 × 100<br>
-        The remaining 20% comes from the SBA section.
-      </p>
-    </div>
-
-    <footer>
-      Updated 2025 | Made by Gaia Yang | Share with ICT classmates
-    </footer>
   </div>
+  <div class="lang-group">
+    <button class="lang-btn active" onclick="setLang('zh-HK',this)">繁</button>
+    <button class="lang-btn" onclick="setLang('zh-CN',this)">简</button>
+    <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+  </div>
+</nav>
 
-  <script>
-    function calculate() {
-      const p1a = parseFloat(document.getElementById('p1a').value) || 0;
-      const p1b = parseFloat(document.getElementById('p1b').value) || 0;
-      const ea  = parseFloat(document.getElementById('ea').value)  || 0;
-      const ec  = parseFloat(document.getElementById('ec').value)  || 0;
+<main>
 
-      // 驗證範圍
-      if (p1a > 40 || p1b > 60 || ea > 30 || ec > 30 || 
-          p1a < 0 || p1b < 0 || ea < 0 || ec < 0) {
-        alert("Please check your scores – they must be within the limits!");
-        return;
-      }
+<!-- PAPER 1 -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon p1">📝</div>
+    <div>
+      <div class="card-title" id="p1-title">Paper 1（必修）</div>
+      <div class="card-badge" id="p1-badge">佔 55%</div>
+      <div class="card-sub" id="p1-sub">1A 多選題 + 1B 傳統題</div>
+    </div>
+  </div>
+  <div class="score-grid">
+    <div class="score-row">
+      <div class="score-label" id="lbl-1a">1A (MC)</div>
+      <div class="input-group">
+        <div class="input-wrap">
+          <input type="number" id="s1a" min="0" placeholder="0" oninput="calc()">
+          <div class="err-msg" id="err-1a"></div>
+        </div>
+        <div class="sep">/</div>
+        <div class="input-wrap">
+          <input type="number" id="f1a" min="1" placeholder="40" oninput="calc()">
+          <div class="err-msg"></div>
+        </div>
+        <div class="fixed-label" id="lbl-marks">分</div>
+      </div>
+    </div>
+    <hr class="score-divider">
+    <div class="score-row">
+      <div class="score-label" id="lbl-1b">1B (傳統題)</div>
+      <div class="input-group">
+        <div class="input-wrap">
+          <input type="number" id="s1b" min="0" placeholder="0" oninput="calc()">
+          <div class="err-msg" id="err-1b"></div>
+        </div>
+        <div class="sep">/</div>
+        <div class="input-wrap">
+          <input type="number" id="f1b" min="1" placeholder="60" oninput="calc()">
+          <div class="err-msg"></div>
+        </div>
+        <div class="fixed-label" id="lbl-marks2">分</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-      // 正確計算
-      const paper1 = p1a + p1b;           // 滿分 100
-      const paper2 = ea + ec;             // 滿分 60
-      const weighted = (paper1/100)*55 + (paper2/60)*25;   // 80 分
-      const percent = weighted / 80 * 100;                 // 轉為 100%
-      const predictedTotal = percent * 1.6;                // 換算成 160 滿分
-      
+<!-- PAPER 2 -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon p2">💾</div>
+    <div>
+      <div class="card-title" id="p2-title">Paper 2（選修）</div>
+      <div class="card-badge" id="p2-badge">佔 25%</div>
+      <div class="card-sub" id="p2-sub">三選二：2A 數據庫 ｜ 2B 網絡應用 ｜ 2C 算法</div>
+    </div>
+  </div>
+  <div class="score-grid">
+    <div class="score-row">
+      <div class="score-label" id="lbl-2a">2A 數據庫</div>
+      <div class="input-group">
+        <div class="input-wrap">
+          <input type="number" id="s2a" min="0" placeholder="0" oninput="handleP2('2a')">
+          <div class="err-msg" id="err-2a"></div>
+        </div>
+        <div class="sep">/</div>
+        <div class="input-wrap">
+          <input type="number" id="f2a" min="1" placeholder="30" oninput="handleP2('2a')">
+          <div class="err-msg"></div>
+        </div>
+        <div class="fixed-label" id="lbl-marks3">分</div>
+      </div>
+    </div>
+    <hr class="score-divider">
+    <div class="score-row">
+      <div class="score-label" id="lbl-2b">2B 網絡應用</div>
+      <div class="input-group">
+        <div class="input-wrap">
+          <input type="number" id="s2b" min="0" placeholder="0" oninput="handleP2('2b')">
+          <div class="err-msg" id="err-2b"></div>
+        </div>
+        <div class="sep">/</div>
+        <div class="input-wrap">
+          <input type="number" id="f2b" min="1" placeholder="30" oninput="handleP2('2b')">
+          <div class="err-msg"></div>
+        </div>
+        <div class="fixed-label" id="lbl-marks4">分</div>
+      </div>
+    </div>
+    <hr class="score-divider">
+    <div class="score-row">
+      <div class="score-label" id="lbl-2c">2C 算法</div>
+      <div class="input-group">
+        <div class="input-wrap">
+          <input type="number" id="s2c" min="0" placeholder="0" oninput="handleP2('2c')">
+          <div class="err-msg" id="err-2c"></div>
+        </div>
+        <div class="sep">/</div>
+        <div class="input-wrap">
+          <input type="number" id="f2c" min="1" placeholder="30" oninput="handleP2('2c')">
+          <div class="err-msg"></div>
+        </div>
+        <div class="fixed-label" id="lbl-marks5">分</div>
+      </div>
+    </div>
+  </div>
+  <div class="p2-warning" id="p2-warning">⚠️ 請任選兩個單元輸入分數以解鎖預測</div>
+</div>
 
-      // 顯示
-      document.getElementById('total').textContent = predictedTotal.toFixed(1) + " / 160";
-      document.getElementById('percent').textContent = percent.toFixed(1) + "%";
-      document.getElementById('bar').style.width = percent + "%";
+<!-- SBA -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-icon sba">🎓</div>
+    <div>
+      <div class="card-title" id="sba-title">SBA 校本評核</div>
+      <div class="card-badge" id="sba-badge">佔 20%</div>
+      <div class="card-sub" id="sba-sub">Task 1 設計 + Task 2 測試（留空代表未完成）</div>
+    </div>
+  </div>
+  <div class="score-grid">
+    <div class="score-row">
+      <div class="score-label" id="lbl-t1">Task 1</div>
+      <div class="input-group">
+        <div class="input-wrap">
+          <input type="number" id="st1" min="0" max="25" placeholder="0" oninput="calc()">
+          <div class="err-msg" id="err-t1"></div>
+        </div>
+        <div class="fixed-label">/ 25</div>
+      </div>
+    </div>
+    <hr class="score-divider">
+    <div class="score-row">
+      <div class="score-label" id="lbl-t2">Task 2</div>
+      <div class="input-group">
+        <div class="input-wrap">
+          <input type="number" id="st2" min="0" max="15" placeholder="0" oninput="calc()">
+          <div class="err-msg" id="err-t2"></div>
+        </div>
+        <div class="fixed-label">/ 15</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-      // 鼓勵語
-      let comment = "";
-      if (percent >= 85) comment = "Amazing! Predicted A*!";
-      else if (percent >= 78) comment = "Excellent! High chance for A!";
-      else if (percent >= 65) comment = "Good! Keep pushing!";
-      else comment = "Room to improve! Practice more!";
+<!-- RESULT -->
+<div class="result-card hidden" id="result-card">
+  <div class="result-header">
+    <div class="result-top">
+      <div>
+        <div class="result-score-wrap">
+          <div class="result-score" id="result-score">--</div>
+          <div class="result-pct">%</div>
+        </div>
+        <div class="mode-tag" id="mode-tag"></div>
+      </div>
+      <div class="grade-badge" id="grade-badge">--</div>
+    </div>
+    <div class="prog-wrap"><div class="prog-bar" id="prog-bar"></div></div>
+  </div>
+  <div class="cutoff-section">
+    <div class="cutoff-grid" id="cutoff-grid"></div>
+  </div>
+  <div class="comment-section">
+    <div class="comment-label" id="comment-label">評語</div>
+    <div class="comment-box" id="comment-box"></div>
+    <div id="formula-note" style="margin-top:10px;font-size:.7rem;color:var(--muted);line-height:1.5;padding:0 2px"></div>
+  </div>
+</div>
 
-      document.getElementById('comment').textContent = comment;
-      document.getElementById('result').style.display = "block";
-      document.getElementById('result').scrollIntoView({ behavior: "smooth" });
-    }
-  </script>
+</main>
+
+<footer>
+  <div class="name">Crafted with 💻 and ❤️ by Gaia Yang</div>
+  <div>📩 Get in touch: <a href="mailto:gaiayang.edu@gmail.com">gaiayang.edu@gmail.com</a></div>
+  <div class="badges">
+    <span>Powered by</span>
+    <span class="badge badge-claude">🤖 Claude AI</span>
+    <span class="badge badge-github">🐙 GitHub</span>
+  </div>
+</footer>
+
+<script>
+// ===================== i18n =====================
+const i18n = {
+  'zh-HK': {
+    navTitle:'DSE ICT 預估成績計算器',
+    p1Title:'Paper 1（必修）',p1Badge:'佔 55%',
+    p1Sub:'1A 多選題 + 1B 傳統題',
+    p2Title:'Paper 2（選修）',p2Badge:'佔 25%',
+    p2Sub:'三選二：2A 數據庫 ｜ 2B 網絡應用 ｜ 2C 算法',
+    sbaTitle:'SBA 校本評核',sbaBadge:'佔 20%',
+    sbaSub:'Task 1 設計 + Task 2 測試（留空代表未完成）',
+    lbl1a:'1A (MC)',lbl1b:'1B (傳統題)',
+    lbl2a:'2A 數據庫',lbl2b:'2B 網絡應用',lbl2c:'2C 算法',
+    lblT1:'Task 1',lblT2:'Task 2',lblMarks:'分',
+    commentLabel:'評語',
+    p2Warn:'⚠️ 請任選兩個單元輸入分數以解鎖預測',
+    errOver:'分數不可超過滿分',errNeg:'分數不可為負數',
+    modeA:'模式：完整評估（P1 + P2 + SBA）',
+    modeB:'模式：純筆試評估（SBA 已剔除，筆試佔比放大至 100%）',
+    gradeNames:{'5**':'Level 5**','5*':'Level 5*','5':'Level 5','4':'Level 4','3':'Level 3','12':'Level 1/2'},
+    comments:{
+      '5**':'🏆 極其優秀！有極大機會摘取雙星。',
+      '5*':'🌟 表現拔尖！目標直指 5*，注意審題細節。',
+      '5':'💎 實力穩健！穩奪 5 級，衝刺星級吧！',
+      '4':'💪 中上水平！穩住第 4 級，加強錯題複習。',
+      '3':'📚 達到平均水準！多攻克核心長題目。',
+      '12':'⚡ 繼續加油！多做 Past Paper 熟悉題型。'
+    },
+    formulaNote:'• 評級預估參考 2025 DSE ICT 實際 Cut-off 數據估算，網頁於 2026 年最新更新。'
+  },
+  'zh-CN': {
+    navTitle:'DSE ICT 预估成绩计算器',
+    p1Title:'Paper 1（必修）',p1Badge:'占 55%',
+    p1Sub:'1A 多选题 + 1B 传统题',
+    p2Title:'Paper 2（选修）',p2Badge:'占 25%',
+    p2Sub:'三选二：2A 数据库 ｜ 2B 网络应用 ｜ 2C 算法',
+    sbaTitle:'SBA 校本评核',sbaBadge:'占 20%',
+    sbaSub:'Task 1 设计 + Task 2 测试（留空代表未完成）',
+    lbl1a:'1A (MC)',lbl1b:'1B (传统题)',
+    lbl2a:'2A 数据库',lbl2b:'2B 网络应用',lbl2c:'2C 算法',
+    lblT1:'Task 1',lblT2:'Task 2',lblMarks:'分',
+    commentLabel:'评语',
+    p2Warn:'⚠️ 请任选两个单元输入分数以解锁预测',
+    errOver:'分数不可超过满分',errNeg:'分数不可为负数',
+    modeA:'模式：完整评估（P1 + P2 + SBA）',
+    modeB:'模式：纯笔试评估（SBA 已剔除，笔试占比放大至 100%）',
+    gradeNames:{'5**':'Level 5**','5*':'Level 5*','5':'Level 5','4':'Level 4','3':'Level 3','12':'Level 1/2'},
+    comments:{
+      '5**':'🏆 极其优秀！有极大机会摘取双星。',
+      '5*':'🌟 表现拔尖！目标直指 5*，注意审题细节。',
+      '5':'💎 实力稳健！稳夺 5 级，冲刺星级吧！',
+      '4':'💪 中上水平！稳住第 4 级，加强错题复习。',
+      '3':'📚 达到平均水准！多攻克核心长题目。',
+      '12':'⚡ 继续加油！多做 Past Paper 熟悉题型。'
+    },
+    formulaNote:'• 评级预估参考 2025 DSE ICT 实际 Cut-off 数据估算，网页于 2026 年最新更新。'
+  },
+  'en': {
+    navTitle:'DSE ICT Grade Estimator',
+    p1Title:'Paper 1 (Compulsory)',p1Badge:'Weighting: 55%',
+    p1Sub:'1A Multiple Choice + 1B Conventional',
+    p2Title:'Paper 2 (Elective)',p2Badge:'Weighting: 25%',
+    p2Sub:'Choose 2 of 3: 2A Database ｜ 2B Web App ｜ 2C Algorithm',
+    sbaTitle:'SBA School-Based Assessment',sbaBadge:'Weighting: 20%',
+    sbaSub:'Task 1 Design + Task 2 Testing (leave blank if not done)',
+    lbl1a:'1A (MC)',lbl1b:'1B (Conv.)',
+    lbl2a:'2A Database',lbl2b:'2B Web App',lbl2c:'2C Algorithm',
+    lblT1:'Task 1',lblT2:'Task 2',lblMarks:'pts',
+    commentLabel:'Comments',
+    p2Warn:'⚠️ Please fill in scores for any 2 modules to unlock prediction',
+    errOver:'Score cannot exceed full mark',errNeg:'Score cannot be negative',
+    modeA:'Mode: Full Assessment (P1 + P2 + SBA)',
+    modeB:'Mode: Written Exam Only (SBA excluded, weight scaled to 100%)',
+    gradeNames:{'5**':'Level 5**','5*':'Level 5*','5':'Level 5','4':'Level 4','3':'Level 3','12':'Level 1/2'},
+    comments:{
+      '5**':'🏆 Outstanding performance! Excellent chance for 5**.',
+      '5*':'🌟 Excellent work! High chance for 5*.',
+      '5':'💎 Solid performance! On track for Level 5.',
+      '4':'💪 Good effort! On track for Level 4.',
+      '3':'📚 Average level. Focus more on conventional papers.',
+      '12':'⚡ Room to improve. Keep practicing past papers.'
+    },
+    formulaNote:'• Grade predictions are estimated based on actual 2025 DSE ICT Cut-off data; webpage updated in 2026.'
+  }
+};
+
+let curLang = 'zh-HK';
+
+function setLang(l, btn) {
+  curLang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyLang();
+  calc();
+}
+
+function applyLang() {
+  const t = i18n[curLang];
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('nav-title', t.navTitle);
+  set('p1-title', t.p1Title); set('p1-badge', t.p1Badge); set('p1-sub', t.p1Sub);
+  set('p2-title', t.p2Title); set('p2-badge', t.p2Badge); set('p2-sub', t.p2Sub);
+  set('sba-title', t.sbaTitle); set('sba-badge', t.sbaBadge); set('sba-sub', t.sbaSub);
+  set('lbl-1a', t.lbl1a); set('lbl-1b', t.lbl1b);
+  set('lbl-2a', t.lbl2a); set('lbl-2b', t.lbl2b); set('lbl-2c', t.lbl2c);
+  set('lbl-t1', t.lblT1); set('lbl-t2', t.lblT2);
+  set('comment-label', t.commentLabel);
+  ['lbl-marks','lbl-marks2','lbl-marks3','lbl-marks4','lbl-marks5'].forEach(id => set(id, t.lblMarks));
+  document.getElementById('p2-warning').textContent = t.p2Warn;
+}
+
+// ===================== P2 Lock =====================
+function hasVal(id) { return document.getElementById(id).value.trim() !== ''; }
+
+function handleP2(unit) {
+  const units = ['2a','2b','2c'];
+  const filled = units.filter(u => hasVal('s'+u));
+  if (filled.length >= 2) {
+    units.filter(u => !filled.includes(u)).forEach(u => {
+      ['s'+u,'f'+u].forEach(id => {
+        const el = document.getElementById(id);
+        el.disabled = true; el.value = '';
+      });
+      const e = document.getElementById('err-'+u);
+      if(e) e.textContent = '';
+    });
+  } else {
+    units.forEach(u => ['s'+u,'f'+u].forEach(id => {
+      document.getElementById(id).disabled = false;
+    }));
+  }
+  calc();
+}
+
+// ===================== Validation =====================
+function validateField(scoreId, fullMark, errId) {
+  const el = document.getElementById(scoreId);
+  const errEl = document.getElementById(errId);
+  const t = i18n[curLang];
+  const v = parseFloat(el.value);
+  if (el.value.trim() === '') {
+    el.classList.remove('error');
+    if(errEl) errEl.textContent = '';
+    return {ok:true, empty:true};
+  }
+  if (v < 0) {
+    el.classList.add('error');
+    if(errEl) errEl.textContent = t.errNeg;
+    return {ok:false};
+  }
+  if (v > fullMark) {
+    el.classList.add('error');
+    if(errEl) errEl.textContent = t.errOver;
+    return {ok:false};
+  }
+  el.classList.remove('error');
+  if(errEl) errEl.textContent = '';
+  return {ok:true, empty:false, val:v};
+}
+
+function getNum(id, def) {
+  const v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? def : v;
+}
+
+// ===================== Grade =====================
+const GRADES = [
+  {key:'5**', min:89, label:'Level 5**'},
+  {key:'5*',  min:85, label:'Level 5*'},
+  {key:'5',   min:79, label:'Level 5'},
+  {key:'4',   min:70, label:'Level 4'},
+  {key:'3',   min:55, label:'Level 3'},
+  {key:'12',  min:0,  label:'Level 1/2'},
+];
+function getGrade(pct) {
+  for (const g of GRADES) if (pct >= g.min) return g;
+  return GRADES[GRADES.length-1];
+}
+
+// ===================== Main Calc =====================
+function calc() {
+  const t = i18n[curLang];
+
+  // P1
+  const f1a = getNum('f1a',40), f1b = getNum('f1b',60);
+  const v1a = validateField('s1a', f1a, 'err-1a');
+  const v1b = validateField('s1b', f1b, 'err-1b');
+  if (!v1a.ok || !v1b.ok) return;
+  const s1a = v1a.empty ? null : v1a.val;
+  const s1b = v1b.empty ? null : v1b.val;
+  let p1Rate = null;
+  if (s1a !== null || s1b !== null) {
+    const num = (s1a||0)+(s1b||0);
+    const den = (s1a!==null?f1a:0)+(s1b!==null?f1b:0);
+    p1Rate = den>0 ? num/den : null;
+  }
+
+  // P2
+  const fullP2 = {_2a:getNum('f2a',30),_2b:getNum('f2b',30),_2c:getNum('f2c',30)};
+  let p2Scores = {}, p2Valid = true;
+  for (const u of ['2a','2b','2c']) {
+    const v = validateField('s'+u, fullP2['_'+u], 'err-'+u);
+    if (!v.ok) { p2Valid=false; break; }
+    if (!v.empty) p2Scores[u] = {s:v.val, f:fullP2['_'+u]};
+  }
+  if (!p2Valid) return;
+
+  const p2Count = Object.keys(p2Scores).length;
+  const p2Warn = document.getElementById('p2-warning');
+  if (p2Count > 0 && p2Count < 2) {
+    p2Warn.classList.add('show');
+    p2Warn.textContent = t.p2Warn;
+    document.getElementById('result-card').classList.add('hidden');
+    return;
+  }
+  p2Warn.classList.remove('show');
+
+  let p2Rate = null;
+  if (p2Count === 2) {
+    const vals = Object.values(p2Scores);
+    p2Rate = (vals[0].s+vals[1].s)/(vals[0].f+vals[1].f);
+  }
+
+  // SBA
+  const vt1 = validateField('st1',25,'err-t1');
+  const vt2 = validateField('st2',15,'err-t2');
+  if (!vt1.ok || !vt2.ok) return;
+  const st1 = vt1.empty ? null : vt1.val;
+  const st2 = vt2.empty ? null : vt2.val;
+  let sbaRate = null;
+  if (st1!==null && st2!==null) sbaRate=(st1+st2)/40;
+  else if (st1!==null) sbaRate=st1/25;
+
+  const rc = document.getElementById('result-card');
+  if (p1Rate===null && p2Rate===null) { rc.classList.add('hidden'); return; }
+
+  let finalPct, mode;
+  const hasBoth = p1Rate!==null && p2Rate!==null;
+  if (hasBoth && sbaRate!==null) {
+    finalPct = p1Rate*55 + p2Rate*25 + sbaRate*20;
+    mode = t.modeA;
+  } else if (hasBoth) {
+    finalPct = (p1Rate*55 + p2Rate*25)/80*100;
+    mode = t.modeB;
+  } else { rc.classList.add('hidden'); return; }
+
+  finalPct = Math.min(100, Math.max(0, finalPct));
+  const grade = getGrade(finalPct);
+
+  rc.classList.remove('hidden');
+  document.getElementById('result-score').textContent = finalPct.toFixed(1);
+  document.getElementById('mode-tag').textContent = mode;
+  document.getElementById('grade-badge').textContent = t.gradeNames[grade.key];
+  document.getElementById('prog-bar').style.width = finalPct+'%';
+
+  const cg = document.getElementById('cutoff-grid');
+  cg.innerHTML = '';
+  GRADES.forEach(g => {
+    const div = document.createElement('div');
+    div.className = 'cutoff-item'+(g.key===grade.key?' active':'');
+    div.innerHTML = `<div class="cutoff-grade">${t.gradeNames[g.key]}</div><div class="cutoff-pct">≥${g.min}%</div>`;
+    cg.appendChild(div);
+  });
+
+  document.getElementById('comment-label').textContent = t.commentLabel;
+  document.getElementById('comment-box').textContent = t.comments[grade.key];
+  document.getElementById('formula-note').textContent = t.formulaNote;
+}
+
+applyLang();
+calc();
+</script>
 </body>
 </html>
